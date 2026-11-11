@@ -1,12 +1,12 @@
-"""Pipeline riproducibile: carica -> addestra -> valuta -> scrive in results/.
+"""Reproducible pipeline: load -> train -> evaluate -> write to results/.
 
-Passi:
-1. Carica il dataset reale da data/ (scaricalo prima con download_data.py).
-2. Split train/test con seed fisso.
-3. Addestra baseline + modelli, valuta su test (R2, RMSE, MAE).
-4. Scrive results/metrics.json e due figure (EDA + predetto-vs-reale).
+Steps:
+1. Load the real dataset from data/ (download it first with download_data.py).
+2. Train/test split with a fixed seed.
+3. Train the baseline + models, evaluate on the test set (R2, RMSE, MAE).
+4. Write results/metrics.json and two figures (EDA + predicted-vs-actual).
 
-Esegui con:  uv run python scripts/train.py
+Run with:  uv run python scripts/train.py
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import matplotlib
 
-matplotlib.use("Agg")  # backend non interattivo, adatto agli script
+matplotlib.use("Agg")  # non-interactive backend, suitable for scripts
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -36,26 +36,26 @@ SEED = 42
 
 
 def _plot_eda(df, path: Path) -> None:
-    """Boxplot delle spese per status di fumatore: la separazione più netta."""
+    """Boxplot of costs by smoking status: the clearest separation."""
     fig, ax = plt.subplots(figsize=(7, 5))
     groups = [df.loc[df["smoker"] == v, TARGET].to_numpy() for v in ("no", "yes")]
-    ax.boxplot(groups, tick_labels=["non fumatore", "fumatore"])
-    ax.set_ylabel("Spese sanitarie annue (USD)")
-    ax.set_title("Spese sanitarie per status di fumatore")
+    ax.boxplot(groups, tick_labels=["non-smoker", "smoker"])
+    ax.set_ylabel("Annual medical costs (USD)")
+    ax.set_title("Medical costs by smoking status")
     fig.tight_layout()
     fig.savefig(path, dpi=120)
     plt.close(fig)
 
 
 def _plot_pred_vs_true(y_true, y_pred, name: str, path: Path) -> None:
-    """Scatter predetto-vs-reale con la bisettrice ideale."""
+    """Predicted-vs-actual scatter with the identity line."""
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.scatter(y_true, y_pred, s=12, alpha=0.5, color="#2c7fb8")
     lims = [min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())]
     ax.plot(lims, lims, "r--", linewidth=1)
-    ax.set_xlabel("Spese reali (USD)")
-    ax.set_ylabel("Spese predette (USD)")
-    ax.set_title(f"Predetto vs reale — {name}")
+    ax.set_xlabel("Actual costs (USD)")
+    ax.set_ylabel("Predicted costs (USD)")
+    ax.set_title(f"Predicted vs actual — {name}")
     fig.tight_layout()
     fig.savefig(path, dpi=120)
     plt.close(fig)
@@ -66,7 +66,7 @@ def main() -> None:
     RESULTS_DIR.mkdir(exist_ok=True)
 
     df = load_insurance(DATA_DIR)
-    print(f"Dataset caricato: {len(df)} righe, {df.shape[1]} colonne.")
+    print(f"Dataset loaded: {len(df)} rows, {df.shape[1]} columns.")
 
     X = df.drop(columns=[TARGET])
     y = df[TARGET]
@@ -76,11 +76,11 @@ def main() -> None:
 
     results: dict[str, dict[str, float]] = {}
 
-    # Baseline: media del target di train.
+    # Baseline: mean of the training target.
     baseline = build_baseline().fit(X_train, y_train)
     results["baseline_mean"] = regression_metrics(y_test, baseline.predict(X_test))
 
-    # Modelli veri e propri.
+    # Actual models.
     best_name, best_r2, best_pred = None, -float("inf"), None
     for name, model in build_models(seed=SEED).items():
         model.fit(X_train, y_train)
@@ -92,7 +92,7 @@ def main() -> None:
 
     metrics_path = RESULTS_DIR / "metrics.json"
     metrics_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
-    print(f"Metriche scritte in: {metrics_path}")
+    print(f"Metrics written to: {metrics_path}")
 
     _plot_eda(df, RESULTS_DIR / "eda_charges_by_smoker.png")
     _plot_pred_vs_true(
@@ -101,7 +101,7 @@ def main() -> None:
         best_name,
         RESULTS_DIR / "pred_vs_true.png",
     )
-    print(f"Figure salvate in: {RESULTS_DIR}")
+    print(f"Figures saved to: {RESULTS_DIR}")
 
 
 if __name__ == "__main__":

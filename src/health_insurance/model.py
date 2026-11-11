@@ -1,9 +1,9 @@
-"""Modelli, baseline e preprocessing per la regressione delle spese sanitarie.
+"""Models, baseline and preprocessing for the medical-cost regression.
 
-Ogni modello è una ``Pipeline`` scikit-learn che incapsula il preprocessing
-(one-hot sulle categoriche, standardizzazione delle numeriche dove serve) più
-lo stimatore. Questo garantisce che la trasformazione sia appresa solo sul
-train e riapplicata al test senza leakage.
+Each model is a scikit-learn ``Pipeline`` that wraps the preprocessing
+(one-hot on categorical features, standardisation of numeric ones where useful)
+together with the estimator. This ensures the transformation is fitted on the
+training set only and re-applied to the test set without leakage.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from health_insurance.data import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
 
 def set_seed(seed: int = 0) -> int:
-    """Imposta i seed globali per riproducibilità. Restituisce il seed usato."""
+    """Set the global seeds for reproducibility. Returns the seed used."""
     os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -31,10 +31,10 @@ def set_seed(seed: int = 0) -> int:
 
 
 def _preprocessor(scale_numeric: bool) -> ColumnTransformer:
-    """Costruisce il preprocessing: one-hot sulle categoriche, scaling opzionale.
+    """Build the preprocessing: one-hot on categorical features, optional scaling.
 
-    Lo scaling delle numeriche giova ai modelli lineari; per gli ensemble
-    basati su alberi è ininfluente, quindi lo si disattiva per chiarezza.
+    Scaling the numeric features helps linear models; for tree-based
+    ensembles it makes no difference, so it is turned off for clarity.
     """
     numeric = StandardScaler() if scale_numeric else "passthrough"
     return ColumnTransformer(
@@ -46,11 +46,11 @@ def _preprocessor(scale_numeric: bool) -> ColumnTransformer:
 
 
 def build_models(seed: int = 0) -> dict[str, Pipeline]:
-    """Restituisce i modelli da confrontare, come pipeline pronte al fit.
+    """Return the models to compare, as pipelines ready to fit.
 
-    - ``linear_regression``: regressione lineare (feature scalate).
-    - ``random_forest``: ensemble di alberi, cattura le non linearità e le
-      interazioni (es. fumo × BMI).
+    - ``linear_regression``: linear regression (scaled features).
+    - ``random_forest``: tree ensemble, captures non-linearities and
+      interactions (e.g. smoking × BMI).
     """
     return {
         "linear_regression": Pipeline(
@@ -77,9 +77,9 @@ def build_models(seed: int = 0) -> dict[str, Pipeline]:
 
 
 def build_baseline() -> Pipeline:
-    """Baseline non informativa: predice sempre la media del target di train.
+    """Non-informative baseline: always predicts the mean of the training target.
 
-    Serve come riferimento minimo: qualunque modello utile deve batterla.
+    It serves as the minimum reference: any useful model has to beat it.
     """
     return Pipeline(
         steps=[

@@ -1,7 +1,7 @@
 [project]
 name = "health-insurance"
 version = "0.1.0"
-description = "Mini-progetto di ML clinico: regressione delle spese sanitarie individuali (Medical Cost Personal) con pipeline riproducibile e app Streamlit"
+description = "Small clinical ML project: regression of individual medical costs (Medical Cost Personal) with a reproducible pipeline and a Streamlit app"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
