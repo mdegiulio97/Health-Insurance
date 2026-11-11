@@ -1,10 +1,10 @@
-"""Mini-progetto ML clinico: predizione delle spese sanitarie individuali.
+"""Small clinical ML project: predicting individual medical costs.
 
-Regressione del target `charges` del dataset Medical Cost Personal a partire da
-variabili demografiche e di stile di vita (age, sex, bmi, children, smoker, region).
+Regression of the `charges` target of the Medical Cost Personal dataset from
+demographic and lifestyle variables (age, sex, bmi, children, smoker, region).
 
-Espone le funzioni principali della pipeline: caricamento/generazione dei dati,
-costruzione dei modelli e metriche di valutazione.
+Exposes the main pipeline functions: data loading/generation, model
+construction and evaluation metrics.
 """
 
 from health_insurance.data import (

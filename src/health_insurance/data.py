@@ -1,14 +1,14 @@
-"""Caricamento del dataset reale e generatore sintetico con ground truth.
+"""Loading of the real dataset and a synthetic generator with ground truth.
 
-Due sorgenti di dati:
+Two data sources:
 
-- ``load_insurance(data_dir)`` legge il CSV reale (Medical Cost Personal)
-  precedentemente scaricato in ``data/`` da ``scripts/download_data.py``.
-- ``make_synthetic(n, seed)`` genera un dataset con le stesse colonne e una
-  relazione NOTA fra feature e target. Serve ai test, che così girano
-  completamente offline (la CI non ha accesso di rete).
+- ``load_insurance(data_dir)`` reads the real CSV (Medical Cost Personal)
+  previously downloaded into ``data/`` by ``scripts/download_data.py``.
+- ``make_synthetic(n, seed)`` generates a dataset with the same columns and a
+  KNOWN relationship between features and target. It is used by the tests, which
+  therefore run fully offline (CI has no network access).
 
-Colonne del dataset: age, sex, bmi, children, smoker, region, charges.
+Dataset columns: age, sex, bmi, children, smoker, region, charges.
 """
 
 from __future__ import annotations
@@ -18,52 +18,52 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-#: Nome del file CSV atteso nella cartella dati.
+#: Name of the CSV file expected in the data folder.
 CSV_NAME = "insurance.csv"
 
-#: Colonna target (regressione): spesa sanitaria annua in USD.
+#: Target column (regression): annual medical costs in USD.
 TARGET = "charges"
 
-#: Feature numeriche.
+#: Numeric features.
 NUMERIC_FEATURES = ["age", "bmi", "children"]
 
-#: Feature categoriche (verranno codificate one-hot nella pipeline).
+#: Categorical features (one-hot encoded in the pipeline).
 CATEGORICAL_FEATURES = ["sex", "smoker", "region"]
 
-#: Tutte le feature usate come input del modello.
+#: All features used as model input.
 FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
 
-#: Regioni del dataset originale.
+#: Regions of the original dataset.
 REGIONS = ["southwest", "southeast", "northwest", "northeast"]
 
 
 def load_insurance(data_dir: str | Path) -> pd.DataFrame:
-    """Carica il dataset reale ``insurance.csv`` dalla cartella ``data_dir``.
+    """Load the real ``insurance.csv`` dataset from the ``data_dir`` folder.
 
-    Restituisce un DataFrame con le colonne canoniche. Solleva un errore
-    esplicito se il file non è presente (va scaricato prima con
+    Returns a DataFrame with the canonical columns. Raises an explicit error
+    if the file is missing (download it first with
     ``scripts/download_data.py``).
     """
     path = Path(data_dir) / CSV_NAME
     if not path.exists():
         raise FileNotFoundError(
-            f"'{path}' non trovato. Esegui prima 'uv run python scripts/download_data.py' "
-            "per scaricare il dataset (i dati non sono committati)."
+            f"'{path}' not found. First run 'uv run python scripts/download_data.py' "
+            "to download the dataset (the data are not committed)."
         )
     df = pd.read_csv(path)
     missing = set(FEATURES + [TARGET]) - set(df.columns)
     if missing:
-        raise ValueError(f"Colonne mancanti nel CSV: {sorted(missing)}")
+        raise ValueError(f"Missing columns in the CSV: {sorted(missing)}")
     return df[FEATURES + [TARGET]].copy()
 
 
 def make_synthetic(n: int = 1338, seed: int = 0) -> pd.DataFrame:
-    """Genera un dataset sintetico con la stessa struttura di quello reale.
+    """Generate a synthetic dataset with the same structure as the real one.
 
-    Il target ``charges`` è costruito da una relazione nota (ground truth):
-    cresce con età e BMI, è fortemente amplificato dallo status di fumatore e
-    perturbato da rumore gaussiano. Serve ai test per verificare che la
-    pipeline apprenda un segnale reale senza dipendere dalla rete.
+    The ``charges`` target is built from a known relationship (ground truth):
+    it grows with age and BMI, is strongly amplified by smoking status and is
+    perturbed by Gaussian noise. The tests use it to check that the pipeline
+    learns a real signal without depending on the network.
     """
     rng = np.random.default_rng(seed)
 
@@ -75,7 +75,7 @@ def make_synthetic(n: int = 1338, seed: int = 0) -> pd.DataFrame:
     region = rng.choice(REGIONS, size=n)
 
     smoker_flag = (smoker == "yes").astype(float)
-    # Ground truth: contributi lineari + forte effetto interazione fumo/BMI.
+    # Ground truth: linear terms + a strong smoking/BMI interaction effect.
     charges = (
         250.0 * age
         + 340.0 * bmi

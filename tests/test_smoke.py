@@ -1,8 +1,8 @@
-"""Smoke test OFFLINE: girano su dati sintetici, senza rete (compatibili CI).
+"""OFFLINE smoke tests: they run on synthetic data, without network (CI-friendly).
 
-Verificano che: il generatore sintetico sia coerente e riproducibile, il
-preprocessing/pipeline funzioni end-to-end, le metriche siano ben formate e i
-modelli battano la baseline su una relazione nota.
+They check that: the synthetic generator is consistent and reproducible, the
+preprocessing/pipeline works end to end, the metrics are well formed and the
+models beat the baseline on a known relationship.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def test_synthetic_schema_and_reproducibility():
     b = make_synthetic(n=200, seed=1)
     assert set(a.columns) == set(FEATURES + [TARGET])
     assert len(a) == 200
-    assert a.equals(b)  # stesso seed -> stesso dataset
+    assert a.equals(b)  # same seed -> same dataset
 
 
 def test_set_seed_is_reproducible():
@@ -66,5 +66,5 @@ def test_models_beat_baseline_on_known_signal():
     for name, model in build_models(seed=0).items():
         model.fit(X_train, y_train)
         r2 = regression_metrics(y_test, model.predict(X_test))["r2"]
-        assert r2 > base_r2, f"{name} non batte la baseline (r2={r2:.3f})"
-        assert r2 > 0.5, f"{name} non recupera il segnale noto (r2={r2:.3f})"
+        assert r2 > base_r2, f"{name} does not beat the baseline (r2={r2:.3f})"
+        assert r2 > 0.5, f"{name} does not recover the known signal (r2={r2:.3f})"

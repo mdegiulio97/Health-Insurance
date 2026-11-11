@@ -1,4 +1,4 @@
-"""Metriche di valutazione per la regressione delle spese sanitarie."""
+"""Evaluation metrics for the medical-cost regression."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 def regression_metrics(y_true, y_pred) -> dict[str, float]:
-    """Calcola R2, RMSE e MAE fra valori reali e predetti.
+    """Compute R2, RMSE and MAE between actual and predicted values.
 
-    - ``r2``: quota di varianza spiegata (1.0 = perfetto, 0.0 = come la media).
-    - ``rmse``: errore quadratico medio radice, nelle unità del target (USD).
-    - ``mae``: errore assoluto medio, robusto agli outlier, in USD.
+    - ``r2``: share of variance explained (1.0 = perfect, 0.0 = same as the mean).
+    - ``rmse``: root mean squared error, in target units (USD).
+    - ``mae``: mean absolute error, robust to outliers, in USD.
     """
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
